@@ -1,0 +1,36 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{24E591DF-EAD5-47CF-B164-7A02729080C4}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="reader.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="reader">
+        <MSBuild Projects="reader.dproj"/>
+    </Target>
+    <Target Name="reader:Clean">
+        <MSBuild Projects="reader.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="reader:Make">
+        <MSBuild Projects="reader.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="reader"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="reader:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="reader:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
