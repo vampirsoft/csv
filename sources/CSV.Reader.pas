@@ -28,13 +28,13 @@ type
   TCSVRow = class
   strict private
     FFields: TArray<string>;
-    FReader: TCSVReader;
+    FCSVReader: TCSVReader;
     function GetField(Index: Integer): string; overload;
     function GetField(ColumnName: string): string; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
   private
-    constructor Create(const Reader: TCSVReader; const Fields: TArray<string>);
+    constructor Create(const CSVReader: TCSVReader; const Fields: TArray<string>);
   public
-    property FieldByIndex[Index: Integer]: string read GetField;
+    property FieldByIndex[Index: Integer]: string read GetField; default;
     property Field[ColumnName: string]: string read GetField;
   end;
 
@@ -46,18 +46,18 @@ type
     FCaseSensitive: Boolean;
   private
     FColumns: TList<string>;
-    FRows: TObjectList<TCSVRow>;
-    class function IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}static;
+    FCSVRows: TObjectList<TCSVRow>;
+    class function IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T; static;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
   strict private type
     TCSVRowEnumerator = class(TEnumerator<TCSVRow>)
     strict private
       FIndex: Integer;
-      FReader: TCSVReader;
+      FCSVReader: TCSVReader;
     strict protected
       function DoGetCurrent: TCSVRow; override;
       function DoMoveNext: Boolean; override;
     public
-      constructor Create(const Reader: TCSVReader);
+      constructor Create(const CSVReader: TCSVReader);
     end;
   strict protected
     function DoGetEnumerator: TEnumerator<TCSVRow>; override;
@@ -75,9 +75,9 @@ implementation
 
 { TCSVRow }
 
-constructor TCSVRow.Create(const Reader: TCSVReader; const Fields: TArray<string>);
+constructor TCSVRow.Create(const CSVReader: TCSVReader; const Fields: TArray<string>);
 begin
-  FReader := Reader;
+  FCSVReader := CSVReader;
   FFields := Fields;
 end;
 
@@ -93,8 +93,8 @@ end;
 
 function TCSVRow.GetField(ColumnName: string): string;
 begin
-  ColumnName := TCSVReader.IfThenElse(FReader.CaseSensitive, ColumnName, ColumnName.ToLower);
-  const ColumnIndex = FReader.FColumns.IndexOf(ColumnName);
+  ColumnName := TCSVReader.IfThenElse(FCSVReader.CaseSensitive, ColumnName, ColumnName.ToLower);
+  const ColumnIndex = FCSVReader.FColumns.IndexOf(ColumnName);
   Result := GetField(ColumnIndex);
 end;
 
@@ -120,17 +120,17 @@ begin
     FColumns := TList<string>.Create(Columns.Split(Delimiter));
   end;
   
-  FRows := TObjectList<TCSVRow>.Create;
+  FCSVRows := TObjectList<TCSVRow>.Create;
   for var Index := 1 to Length(Strings) - 1 do
   begin
     const Row = Strings[Index];
-    FRows.Add(TCSVRow.Create(Self, Row.Split(Delimiter)));
+    FCSVRows.Add(TCSVRow.Create(Self, Row.Split(Delimiter)));
   end;
 end;
 
 destructor TCSVReader.Destroy;
 begin
-  FreeAndNil(FRows);
+  FreeAndNil(FCSVRows);
   FreeAndNil(FColumns);
 end;
 
@@ -147,21 +147,21 @@ end;
 
 { TCSVReader.TCSVRowEnumerator }
 
-constructor TCSVReader.TCSVRowEnumerator.Create(const Reader: TCSVReader);
+constructor TCSVReader.TCSVRowEnumerator.Create(const CSVReader: TCSVReader);
 begin
-  FReader := Reader;
+  FCSVReader := CSVReader;
   FIndex := -1;
 end;
 
 function TCSVReader.TCSVRowEnumerator.DoGetCurrent: TCSVRow;
 begin
-  Result := FReader.FRows[FIndex];
+  Result := FCSVReader.FCSVRows[FIndex];
 end;
 
 function TCSVReader.TCSVRowEnumerator.DoMoveNext: Boolean;
 begin
   Inc(FIndex);
-  Result := FIndex < FReader.FRows.Count;
+  Result := FIndex < FCSVReader.FCSVRows.Count;
 end;
 
 end.
