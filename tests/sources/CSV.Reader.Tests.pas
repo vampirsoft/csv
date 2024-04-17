@@ -16,7 +16,8 @@ unit CSV.Reader.Tests;
 interface
 
 uses
-  TestFramework, CSV.Reader, System.Classes;
+  TestFramework, System.Classes,
+  CSV.Reader;
 
 type
 
@@ -56,7 +57,7 @@ type
 implementation
 
 uses
-  System.SysUtils;
+  System.SysUtils, System.Generics.Collections;
 
 { TCSVReaderTests }
 
@@ -99,7 +100,7 @@ begin
 
   for var Row in FCSVReader do
   begin
-    const ActualField = Row.FieldByIndex[3];
+    const ActualField = Row[3];
   end;
 end;
 
