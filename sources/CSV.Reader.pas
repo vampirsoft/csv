@@ -34,6 +34,7 @@ type
   private
     constructor Create(const CSVReader: TCSVReader; const Fields: TArray<string>);
   public
+    function ToString: string; override;
     property FieldByIndex[Index: Integer]: string read GetField; default;
     property Field[ColumnName: string]: string read GetField;
   end;
@@ -83,9 +84,9 @@ end;
 
 function TCSVRow.GetField(Index: Integer): string;
 begin
-  if (Index < 0) or (Index >= Length(FFields)) then
+  if (Index < Low(FFields)) or (Index > High(FFields)) then
   begin
-    raise ECSVException.Create('Index=' + Index.ToString + ' out of range=[0, ' + (Length(FFields) - 1).ToString + ']');
+    raise ECSVException.Create('Index=' + Index.ToString + ' out of range=[' + Low(FFields).ToString + ', ' + High(FFields).ToString + ']');
   end;
   
   Result := FFields[Index];
@@ -96,6 +97,11 @@ begin
   ColumnName := TCSVReader.IfThenElse(FCSVReader.CaseSensitive, ColumnName, ColumnName.ToLower);
   const ColumnIndex = FCSVReader.FColumns.IndexOf(ColumnName);
   Result := GetField(ColumnIndex);
+end;
+
+function TCSVRow.ToString: string;
+begin
+  Result := string.Join(FCSVReader.Delimiter, FFields);
 end;
 
 { TCSVReader }
