@@ -4,7 +4,7 @@
 //* Latest Source: https://github.com/vampirsoft/csv                          *//
 //* Unit Name    : CSV.Reader.Tests                                           *//
 //* Author       : Сергей (LordVampir) Дворников                              *//
-//* Copyright 2023 LordVampir (https://github.com/vampirsoft)                 *//
+//* Copyright 2024 LordVampir (https://github.com/vampirsoft)                 *//
 //* Licensed under MIT                                                        *//
 //*****************************************************************************//
 /////////////////////////////////////////////////////////////////////////////////
@@ -50,14 +50,19 @@ type
     procedure TearDown; override;
   published
     procedure get_all_rows_test;
+
     procedure raise_exceptionon_on_get_field_if_column_not_found_test;
     procedure raise_exceptionon_on_get_field_if_index_not_found_test;
+
+    procedure search_should_return_nil_if_not_found_row_test;
+    procedure search_should_return_row_if_row_exists_test;
   end;
 
 implementation
 
 uses
-  System.SysUtils, System.Generics.Collections;
+  System.SysUtils, System.Generics.Collections,
+  CSV.Reader.Helpers;
 
 { TCSVReaderTests }
 
@@ -69,15 +74,15 @@ begin
 
   
   var Index := 0;
-  for var Row in FCSVReader do
+  for var CSVRow in FCSVReader do
   begin
-    var ActualField := Row.Field[FColumnTwo.ToUpper];
+    var ActualField := CSVRow.Field[FColumnTwo.ToUpper];
     CheckEquals(ExpectColumnTwo[Index], ActualField);
 
-    ActualField := Row.Field[FColumnFree];
+    ActualField := CSVRow.Field[FColumnFree];
     CheckEquals(ExpectColumnTree[Index], ActualField);
     
-    ActualField := Row.Field[FColumnOne.ToLower];
+    ActualField := CSVRow.Field[FColumnOne.ToLower];
     CheckEquals(ExpectColumnOne[Index], ActualField);
     
     Inc(Index);
@@ -88,9 +93,9 @@ procedure TCSVReaderTests.raise_exceptionon_on_get_field_if_column_not_found_tes
 begin
   ExpectedException := ECSVException;
 
-  for var Row in FCSVReader do
+  for var CSVRow in FCSVReader do
   begin
-    const ActualField = Row.Field['Invalid column'];
+    const ActualField = CSVRow.Field['Invalid column'];
   end;
 end;
 
@@ -98,10 +103,44 @@ procedure TCSVReaderTests.raise_exceptionon_on_get_field_if_index_not_found_test
 begin
   ExpectedException := ECSVException;
 
-  for var Row in FCSVReader do
+  for var CSVRow in FCSVReader do
   begin
-    const ActualField = Row[3];
+    const ActualField = CSVRow[3];
   end;
+end;
+
+procedure TCSVReaderTests.search_should_return_nil_if_not_found_row_test;
+var
+  FoundIndex: Integer;
+
+begin
+  const ActualCSVRow = FCSVReader.Search(
+    function (const CSVRow: TCSVRow): Boolean
+    begin
+      Result := CSVRow.Field[FColumnTwo] = FRowTreeCellTree;
+    end,
+    FoundIndex
+  );
+
+  CheckEquals(FoundIndex, -1);
+  CheckNull(ActualCSVRow);
+end;
+
+procedure TCSVReaderTests.search_should_return_row_if_row_exists_test;
+var
+  FoundIndex: Integer;
+
+begin
+  const ActualCSVRow = FCSVReader.Search(
+    function (const CSVRow: TCSVRow): Boolean
+    begin
+      Result := CSVRow.Field[FColumnTwo] = FRowTwoCellTwo;
+    end,
+    FoundIndex
+  );
+
+  CheckEquals(FoundIndex, 1);
+  CheckEquals(ActualCSVRow.Field[FColumnTwo], FRowTwoCellTwo);
 end;
 
 procedure TCSVReaderTests.SetUp;
@@ -126,4 +165,3 @@ initialization
   RegisterTest(TCSVReaderTests.Suite);
   
 end.
-

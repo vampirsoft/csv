@@ -4,7 +4,7 @@
 //* Latest Source: https://github.com/vampirsoft/csv                          *//
 //* Unit Name    : reader.dpr                                                 *//
 //* Author       : Сергей (LordVampir) Дворников                              *//
-//* Copyright 2023 LordVampir (https://github.com/vampirsoft)                 *//
+//* Copyright 2024 LordVampir (https://github.com/vampirsoft)                 *//
 //* Licensed under MIT                                                        *//
 //*****************************************************************************//
 /////////////////////////////////////////////////////////////////////////////////
@@ -20,6 +20,7 @@ program reader;
 uses
   DUnitTestRunner,
   CSV.Reader,
+  CSV.Reader.Helpers,
   CSV.Reader.Tests;
 
 {$R *.RES}
@@ -32,4 +33,3 @@ begin
   Readln;
 {$ENDIF ~ CONSOLE_TESTRUNNER}
 end.
-

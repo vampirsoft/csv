@@ -4,7 +4,7 @@
 //* Latest Source: https://github.com/vampirsoft/csv                          *//
 //* Unit Name    : CSV.Reader.pas                                             *//
 //* Author       : Сергей (LordVampir) Дворников                              *//
-//* Copyright 2023 LordVampir (https://github.com/vampirsoft)                 *//
+//* Copyright 2024 LordVampir (https://github.com/vampirsoft)                 *//
 //* Licensed under MIT                                                        *//
 //*****************************************************************************//
 /////////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ type
 
 { TCSVRow }
 
-  TCSVRow = class
+  TCSVRow = class sealed
   strict private
     FFields: TArray<string>;
     FCSVReader: TCSVReader;
@@ -40,13 +40,12 @@ type
 
 { TCSVReader }
 
-  TCSVReader = class(TEnumerable<TCSVRow>)
+  TCSVReader = class sealed(TEnumerable<TCSVRow>)
   strict private
     FDelimiter: Char;
     FCaseSensitive: Boolean;
   private
     FColumns: TList<string>;
-    FCSVRows: TObjectList<TCSVRow>;
     class function IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T; static;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
   strict private type
     TCSVRowEnumerator = class(TEnumerator<TCSVRow>)
@@ -60,6 +59,7 @@ type
       constructor Create(const CSVReader: TCSVReader);
     end;
   strict protected
+    FCSVRows: TObjectList<TCSVRow>;
     function DoGetEnumerator: TEnumerator<TCSVRow>; override;
   public
     constructor Create(const Strings: TStrings; const Delimiter: Char = ','; const CaseSensitive: Boolean = false);
@@ -165,4 +165,3 @@ begin
 end;
 
 end.
-
