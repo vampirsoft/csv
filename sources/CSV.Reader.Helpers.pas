@@ -16,6 +16,7 @@ unit CSV.Reader.Helpers;
 interface
 
 uses
+  System.Generics.Defaults,
   CSV.Reader;
 
 type
@@ -29,6 +30,10 @@ type
     function Search(const Predicate: TSearchPredicate): TCSVRow; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
     function Search(const Predicate: TSearchPredicate; out FoundIndex: Integer): TCSVRow; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
     function Search(const Predicate: TSearchPredicate; out FoundIndex: Integer; const Index, Count: Integer): TCSVRow; overload;
+
+    procedure Sort; overload;
+    procedure Sort(const Comparer: IComparer<TCSVRow>); overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+    procedure Sort(const Comparer: IComparer<TCSVRow>; const Index, Count: Integer); overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
   end;
 
 implementation
@@ -74,6 +79,28 @@ begin
   end;
   FoundIndex := -1;
   Result := nil;
+end;
+
+procedure TCSVReaderHelper.Sort;
+begin
+  FCSVRows.Sort(
+    TComparer<TCSVRow>.Construct(
+      function (const Left, Right: TCSVRow): Integer
+      begin
+        Result := TComparer<string>.Default.Compare(Left.ToString, Right.ToString);
+      end
+    )
+  );
+end;
+
+procedure TCSVReaderHelper.Sort(const Comparer: IComparer<TCSVRow>);
+begin
+  FCSVRows.Sort(Comparer);
+end;
+
+procedure TCSVReaderHelper.Sort(const Comparer: IComparer<TCSVRow>; const Index, Count: Integer);
+begin
+  FCSVRows.Sort(Comparer, Index, Count);
 end;
 
 end.
