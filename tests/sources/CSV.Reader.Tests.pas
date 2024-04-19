@@ -43,7 +43,6 @@ type
     FRowTreeCellTwo = 'Row tree - cell two';
     FRowTreeCellTree = 'Row tree - cell tree';
   strict private
-    FStrings: TStrings;
     FCSVReader: TCSVReader;
   protected
     procedure SetUp; override;
@@ -56,15 +55,70 @@ type
 
     procedure search_should_return_nil_if_not_found_row_test;
     procedure search_should_return_row_if_row_exists_test;
+
+    procedure binary_search_should_return_nil_if_not_found_row_test;
+    procedure binary_search_should_return_nil_if_row_exists_test;
   end;
 
 implementation
 
 uses
-  System.SysUtils, System.Generics.Collections,
+  System.SysUtils, System.Generics.Defaults, System.Generics.Collections,
   CSV.Reader.Helpers;
 
 { TCSVReaderTests }
+
+procedure TCSVReaderTests.binary_search_should_return_nil_if_not_found_row_test;
+var
+  FoundIndex: Integer;
+
+begin
+  FCSVReader.Sort(
+    TComparer<TCSVRow>.Construct(
+      function(const Left, Right: TCSVRow): Integer
+      begin
+        Result := TComparer<string>.Default.Compare(Left.Field[FColumnOne], Right.Field[FColumnOne]);
+      end
+    )
+  );
+
+  const ActualCSVRow = FCSVReader.BinarySearch(
+    function(const CSVRow: TCSVRow): Integer
+    begin
+      Result := TComparer<string>.Default.Compare(CSVRow.Field[FColumnOne], FRowTreeCellTree);
+    end,
+    FoundIndex
+  );
+
+  CheckEquals(FoundIndex, -1);
+  CheckNull(ActualCSVRow);
+end;
+
+procedure TCSVReaderTests.binary_search_should_return_nil_if_row_exists_test;
+var
+  FoundIndex: Integer;
+
+begin
+  FCSVReader.Sort(
+    TComparer<TCSVRow>.Construct(
+      function(const Left, Right: TCSVRow): Integer
+      begin
+        Result := TComparer<string>.Default.Compare(Left.Field[FColumnOne], Right.Field[FColumnOne]);
+      end
+    )
+  );
+
+  const ActualCSVRow = FCSVReader.BinarySearch(
+    function(const CSVRow: TCSVRow): Integer
+    begin
+      Result := TComparer<string>.Default.Compare(CSVRow.Field[FColumnOne], FRowTwoCellOne);
+    end,
+    FoundIndex
+  );
+
+  CheckEquals(FoundIndex, 2);
+  CheckEquals(ActualCSVRow.Field[FColumnOne], FRowTwoCellOne);
+end;
 
 procedure TCSVReaderTests.get_all_rows_test;
 begin
@@ -115,7 +169,7 @@ var
 
 begin
   const ActualCSVRow = FCSVReader.Search(
-    function (const CSVRow: TCSVRow): Boolean
+    function(const CSVRow: TCSVRow): Boolean
     begin
       Result := CSVRow.Field[FColumnTwo] = FRowTreeCellTree;
     end,
@@ -132,7 +186,7 @@ var
 
 begin
   const ActualCSVRow = FCSVReader.Search(
-    function (const CSVRow: TCSVRow): Boolean
+    function(const CSVRow: TCSVRow): Boolean
     begin
       Result := CSVRow.Field[FColumnTwo] = FRowTwoCellTwo;
     end,
@@ -145,20 +199,20 @@ end;
 
 procedure TCSVReaderTests.SetUp;
 begin
-  FStrings := TStringList.Create;
-  FStrings.Add(FColumnOne + FDelimiter + FColumnTwo + FDelimiter + FColumnFree);
-  FStrings.Add(FRowOneCellOne + FDelimiter + FRowOneCellTwo + FDelimiter + FRowOneCellTree);
-  FStrings.Add(FRowTwoCellOne + FDelimiter + FRowTwoCellTwo + FDelimiter + FRowTwoCellTree);
-  FStrings.Add(FRowTreeCellOne + FDelimiter + FRowTreeCellTwo + FDelimiter + FRowTreeCellTree);
+  const Strings = TStringList.Create;
+  Strings.Add(string.Join(FDelimiter, [FColumnOne,      FColumnTwo,      FColumnFree]));
+  Strings.Add(string.Join(FDelimiter, [FRowOneCellOne,  FRowOneCellTwo,  FRowOneCellTree]));
+  Strings.Add(string.Join(FDelimiter, [FRowTwoCellOne,  FRowTwoCellTwo,  FRowTwoCellTree]));
+  Strings.Add(string.Join(FDelimiter, [FRowTreeCellOne, FRowTreeCellTwo, FRowTreeCellTree]));
 
-  FCSVReader := TCSVReader.Create(FStrings, FDelimiter);
+  FCSVReader := TCSVReader.Create(Strings, FDelimiter);
+
+  FreeAndNil(Strings);
 end;
 
 procedure TCSVReaderTests.TearDown;
 begin
   FreeAndNil(FCSVReader);
-  
-  FreeAndNil(FStrings);
 end;
 
 initialization
