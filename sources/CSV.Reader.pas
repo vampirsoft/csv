@@ -16,10 +16,11 @@ unit CSV.Reader;
 interface
 
 uses
-  System.Classes, System.SysUtils, System.Generics.Collections;
+  System.Classes, System.SysUtils, System.Generics.Collections,
+  CSV.Common;
 
 type
-  ECSVException = class(Exception);
+  ECSVException = CSV.Common.ECSVException;
   
   TCSVReader = class;
 
@@ -35,6 +36,7 @@ type
     constructor Create(const CSVReader: TCSVReader; const Fields: TArray<string>);
   public
     function ToString: string; override;
+  public
     property FieldByIndex[Index: Integer]: string read GetField; default;
     property Field[ColumnName: string]: string read GetField;
   end;
@@ -68,6 +70,7 @@ type
     constructor Create(const Strings: TArray<string>; const Delimiter: Char = ',';
       const CaseSensitive: Boolean = false); reintroduce; overload;
     destructor Destroy; override;
+  public
     property Delimiter: Char read FDelimiter;
     property CaseSensitive: Boolean read FCaseSensitive;
   end;
@@ -113,7 +116,7 @@ end;
 
 constructor TCSVReader.Create(const Strings: TArray<string>; const Delimiter: Char; const CaseSensitive: Boolean);
 begin
-  FDelimiter := Delimiter;
+  FDelimiter     := Delimiter;
   FCaseSensitive := CaseSensitive;
   
   if Length(Strings) = 0 then

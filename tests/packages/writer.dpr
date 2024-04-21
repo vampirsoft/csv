@@ -2,14 +2,14 @@
 //*****************************************************************************//
 //* Project      : csv                                                        *//
 //* Latest Source: https://github.com/vampirsoft/csv                          *//
-//* Unit Name    : reader.dpr                                                 *//
+//* Unit Name    : writer.dpr                                                 *//
 //* Author       : Сергей (LordVampir) Дворников                              *//
 //* Copyright 2024 LordVampir (https://github.com/vampirsoft)                 *//
 //* Licensed under MIT                                                        *//
 //*****************************************************************************//
 /////////////////////////////////////////////////////////////////////////////////
 
-program reader;
+program writer;
 
 {$INCLUDE CSV.Tests.inc}
 
@@ -20,9 +20,8 @@ program reader;
 uses
   DUnitTestRunner,
   CSV.Common in '..\..\sources\CSV.Common.pas',
-  CSV.Reader in '..\..\sources\CSV.Reader.pas',
-  CSV.Reader.Helpers in '..\..\sources\CSV.Reader.Helpers.pas',
-  CSV.Reader.Tests in '..\sources\CSV.Reader.Tests.pas';
+  CSV.Writer in '..\..\sources\CSV.Writer.pas',
+  CSV.Writer.Tests in '..\sources\CSV.Writer.Tests.pas';
 
 {$R *.RES}
 

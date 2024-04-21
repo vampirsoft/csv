@@ -6,6 +6,9 @@
         <Projects Include="reader.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="writer.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -23,14 +26,23 @@
     <Target Name="reader:Make">
         <MSBuild Projects="reader.dproj" Targets="Make"/>
     </Target>
+    <Target Name="writer">
+        <MSBuild Projects="writer.dproj"/>
+    </Target>
+    <Target Name="writer:Clean">
+        <MSBuild Projects="writer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="writer:Make">
+        <MSBuild Projects="writer.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="reader"/>
+        <CallTarget Targets="reader;writer"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="reader:Clean"/>
+        <CallTarget Targets="reader:Clean;writer:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="reader:Make"/>
+        <CallTarget Targets="reader:Make;writer:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
