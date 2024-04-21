@@ -42,11 +42,14 @@ type
     FRowTreeCellOne = '';
     FRowTreeCellTwo = 'Row tree - cell two';
     FRowTreeCellTree = 'Row tree - cell tree';
+
   strict private
     FCSVReader: TCSVReader;
+
   protected
     procedure SetUp; override;
     procedure TearDown; override;
+
   published
     procedure get_all_rows_test;
 
@@ -125,7 +128,6 @@ begin
   const ExpectColumnOne: TArray<string> = [FRowOneCellOne, FRowTwoCellOne, FRowTreeCellOne];
   const ExpectColumnTwo: TArray<string> = [FRowOneCellTwo, FRowTwoCellTwo, FRowTreeCellTwo];
   const ExpectColumnTree: TArray<string> = [FRowOneCellTree, FRowTwoCellTree, FRowTreeCellTree];
-
   
   var Index := 0;
   for var CSVRow in FCSVReader do

@@ -2,35 +2,25 @@
 //*****************************************************************************//
 //* Project      : csv                                                        *//
 //* Latest Source: https://github.com/vampirsoft/csv                          *//
-//* Unit Name    : reader.dpr                                                 *//
+//* Unit Name    : CSV.Common.pas                                             *//
 //* Author       : Сергей (LordVampir) Дворников                              *//
 //* Copyright 2024 LordVampir (https://github.com/vampirsoft)                 *//
 //* Licensed under MIT                                                        *//
 //*****************************************************************************//
 /////////////////////////////////////////////////////////////////////////////////
 
-program reader;
+unit CSV.Common;
 
-{$INCLUDE CSV.Tests.inc}
+{$INCLUDE CSV.inc}
 
-{$IFDEF CONSOLE_TESTRUNNER}
-{$APPTYPE CONSOLE}
-{$ENDIF}
+interface
 
 uses
-  DUnitTestRunner,
-  CSV.Common in '..\..\sources\CSV.Common.pas',
-  CSV.Reader in '..\..\sources\CSV.Reader.pas',
-  CSV.Reader.Helpers in '..\..\sources\CSV.Reader.Helpers.pas',
-  CSV.Reader.Tests in '..\sources\CSV.Reader.Tests.pas';
+  System.SysUtils;
 
-{$R *.RES}
+type
+  ECSVException = class(Exception);
+  
+implementation
 
-begin
-  ReportMemoryLeaksOnShutdown := True;
-  DUnitTestRunner.RunRegisteredTests;
-{$IFDEF CONSOLE_TESTRUNNER}
-  Write('Для завершения нажмите "ENTER"');
-  Readln;
-{$ENDIF ~ CONSOLE_TESTRUNNER}
 end.
