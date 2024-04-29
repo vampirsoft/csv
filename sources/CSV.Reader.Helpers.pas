@@ -47,6 +47,9 @@ type
 
 implementation
 
+uses
+  CSV.Common;
+
 { TCSVReaderHelper }
 
 function TCSVReaderHelper.BinarySearch(const Compare: TBinarySearchComparer): TCSVRow;

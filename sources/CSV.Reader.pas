@@ -20,25 +20,54 @@ uses
   CSV.Common;
 
 type
-  ECSVException = CSV.Common.ECSVException;
-  
   TCSVReader = class;
 
 { TCSVRow }
 
   TCSVRow = class sealed
+  public type
+    TField = record
+    strict private
+      FHasValue: Boolean;
+      FValue: string;
+
+    private
+      constructor Create(const Value: string; const HasValue: Boolean); reintroduce;
+
+    public
+      function AsString: string; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsInteger: Integer; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsInteger(const Default: Integer): Integer; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsInt64: Int64; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsInt64(const Default: Int64): Int64; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsFloat: Double; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsFloat(const Default: Double): Double; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsFloat(const Default: Double; const FormatSettings: TFormatSettings): Double; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsDateTime: TDateTime; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsDateTime(const Default: TDateTime): TDateTime; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsDateTime(const Default: TDateTime; const FormatSettings: TFormatSettings): TDateTime; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsBoolean: Boolean; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsBoolean(const Default: Boolean): Boolean; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+
+    public
+      property HasValue: Boolean read FHasValue;
+    end;
+
   strict private
     FFields: TArray<string>;
     FCSVReader: TCSVReader;
-    function GetField(Index: Integer): string; overload;
-    function GetField(ColumnName: string): string; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+    function GetField(Index: Integer): TField; overload;
+    function GetField(ColumnName: string): TField; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+
   private
-    constructor Create(const CSVReader: TCSVReader; const Fields: TArray<string>);
+    constructor Create(const CSVReader: TCSVReader; const Fields: TArray<string>); reintroduce;
+
   public
     function ToString: string; override;
+
   public
-    property FieldByIndex[Index: Integer]: string read GetField; default;
-    property Field[ColumnName: string]: string read GetField;
+    property FieldByIndex[Index: Integer]: TField read GetField; default;
+    property Field[ColumnName: string]: TField read GetField;
   end;
 
 { TCSVReader }
@@ -47,29 +76,36 @@ type
   strict private
     FDelimiter: Char;
     FCaseSensitive: Boolean;
+
   private
     FColumns: TList<string>;
     class function IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T; static;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+
   strict private type
     TCSVRowEnumerator = class(TEnumerator<TCSVRow>)
     strict private
       FIndex: Integer;
       FCSVReader: TCSVReader;
+
     strict protected
       function DoGetCurrent: TCSVRow; override;
       function DoMoveNext: Boolean; override;
+
     public
       constructor Create(const CSVReader: TCSVReader);
     end;
+
   strict protected
     FCSVRows: TObjectList<TCSVRow>;
     function DoGetEnumerator: TEnumerator<TCSVRow>; override;
+
   public
     constructor Create(const Strings: TStrings; const Delimiter: Char = ','; const CaseSensitive: Boolean = false);
       reintroduce; overload;
     constructor Create(const Strings: TArray<string>; const Delimiter: Char = ',';
       const CaseSensitive: Boolean = false); reintroduce; overload;
     destructor Destroy; override;
+
   public
     property Delimiter: Char read FDelimiter;
     property CaseSensitive: Boolean read FCaseSensitive;
@@ -85,17 +121,18 @@ begin
   FFields := Fields;
 end;
 
-function TCSVRow.GetField(Index: Integer): string;
+function TCSVRow.GetField(Index: Integer): TField;
 begin
-  if (Index < Low(FFields)) or (Index > High(FFields)) then
+  if (Index < 0) or (Index >= FCSVReader.FColumns.Count) then
   begin
-    raise ECSVException.Create('Index=' + Index.ToString + ' out of range=[' + Low(FFields).ToString + ', ' + High(FFields).ToString + ']');
+    raise ECSVException.Create('Index=' + Index.ToString + ' out of range=[0, ' + (FCSVReader.FColumns.Count - 1).ToString + ']');
   end;
-  
-  Result := FFields[Index];
+
+  if Index > High(FFields) then Exit(TField.Create('', False));
+  Result := TField.Create(FFields[Index], True);
 end;
 
-function TCSVRow.GetField(ColumnName: string): string;
+function TCSVRow.GetField(ColumnName: string): TField;
 begin
   ColumnName := TCSVReader.IfThenElse(FCSVReader.CaseSensitive, ColumnName, ColumnName.ToLower);
   const ColumnIndex = FCSVReader.FColumns.IndexOf(ColumnName);
@@ -105,6 +142,79 @@ end;
 function TCSVRow.ToString: string;
 begin
   Result := string.Join(FCSVReader.Delimiter, FFields);
+end;
+
+{ TCSVRow.TField }
+
+constructor TCSVRow.TField.Create(const Value: string; const HasValue: Boolean);
+begin
+  FValue    := Value;
+  FHasValue := HasValue;
+end;
+
+function TCSVRow.TField.AsBoolean(const Default: Boolean): Boolean;
+begin
+  if not Boolean.TryToParse(FValue, Result) then Result := Default;
+end;
+
+function TCSVRow.TField.AsBoolean: Boolean;
+begin
+  Result := Boolean.Parse(FValue);
+end;
+
+function TCSVRow.TField.AsDateTime: TDateTime;
+begin
+  Result := StrToDateTime(FValue);
+end;
+
+function TCSVRow.TField.AsDateTime(const Default: TDateTime; const FormatSettings: TFormatSettings): TDateTime;
+begin
+  if not TryStrToDateTime(FValue, Result, FormatSettings) then Result := Default;
+end;
+
+function TCSVRow.TField.AsDateTime(const Default: TDateTime): TDateTime;
+begin
+  if not TryStrToDateTime(FValue, Result) then Result := Default;
+end;
+
+function TCSVRow.TField.AsFloat(const Default: Double): Double;
+begin
+  if not Double.TryParse(FValue, Result) then Result := Default;
+end;
+
+function TCSVRow.TField.AsFloat: Double;
+begin
+  Result := FValue.ToDouble;
+end;
+
+function TCSVRow.TField.AsFloat(const Default: Double; const FormatSettings: TFormatSettings): Double;
+begin
+  if not Double.TryParse(FValue, Result, FormatSettings) then Result := Default;
+end;
+
+function TCSVRow.TField.AsInt64(const Default: Int64): Int64;
+begin
+  if not Int64.TryParse(FValue, Result) then Result := Default;
+end;
+
+function TCSVRow.TField.AsInt64: Int64;
+begin
+  Result := FValue.ToInt64;
+end;
+
+function TCSVRow.TField.AsInteger(const Default: Integer): Integer;
+begin
+  if not Integer.TryParse(FValue, Result) then Result := Default;
+end;
+
+function TCSVRow.TField.AsInteger: Integer;
+begin
+  Result := FValue.ToInteger;
+end;
+
+function TCSVRow.TField.AsString: string;
+begin
+  Result := FValue;
 end;
 
 { TCSVReader }

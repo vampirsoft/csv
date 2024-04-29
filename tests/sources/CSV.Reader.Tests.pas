@@ -67,7 +67,7 @@ implementation
 
 uses
   System.SysUtils, System.Generics.Defaults, System.Generics.Collections,
-  CSV.Reader.Helpers;
+  CSV.Common, CSV.Reader.Helpers;
 
 { TCSVReaderTests }
 
@@ -80,7 +80,7 @@ begin
     TComparer<TCSVRow>.Construct(
       function(const Left, Right: TCSVRow): Integer
       begin
-        Result := TComparer<string>.Default.Compare(Left.Field[FColumnOne], Right.Field[FColumnOne]);
+        Result := TComparer<string>.Default.Compare(Left.Field[FColumnOne].AsString, Right.Field[FColumnOne].AsString);
       end
     )
   );
@@ -88,7 +88,7 @@ begin
   const ActualCSVRow = FCSVReader.BinarySearch(
     function(const CSVRow: TCSVRow): Integer
     begin
-      Result := TComparer<string>.Default.Compare(CSVRow.Field[FColumnOne], FRowTreeCellTree);
+      Result := TComparer<string>.Default.Compare(CSVRow.Field[FColumnOne].AsString, FRowTreeCellTree);
     end,
     FoundIndex
   );
@@ -106,7 +106,7 @@ begin
     TComparer<TCSVRow>.Construct(
       function(const Left, Right: TCSVRow): Integer
       begin
-        Result := TComparer<string>.Default.Compare(Left.Field[FColumnOne], Right.Field[FColumnOne]);
+        Result := TComparer<string>.Default.Compare(Left.Field[FColumnOne].AsString, Right.Field[FColumnOne].AsString);
       end
     )
   );
@@ -114,13 +114,13 @@ begin
   const ActualCSVRow = FCSVReader.BinarySearch(
     function(const CSVRow: TCSVRow): Integer
     begin
-      Result := TComparer<string>.Default.Compare(CSVRow.Field[FColumnOne], FRowTwoCellOne);
+      Result := TComparer<string>.Default.Compare(CSVRow.Field[FColumnOne].AsString, FRowTwoCellOne);
     end,
     FoundIndex
   );
 
   CheckEquals(FoundIndex, 2);
-  CheckEquals(ActualCSVRow.Field[FColumnOne], FRowTwoCellOne);
+  CheckEquals(ActualCSVRow.Field[FColumnOne].AsString, FRowTwoCellOne);
 end;
 
 procedure TCSVReaderTests.get_all_rows_test;
@@ -132,13 +132,13 @@ begin
   var Index := 0;
   for var CSVRow in FCSVReader do
   begin
-    var ActualField := CSVRow.Field[FColumnTwo.ToUpper];
+    var ActualField := CSVRow.Field[FColumnTwo.ToUpper].AsString;
     CheckEquals(ExpectColumnTwo[Index], ActualField);
 
-    ActualField := CSVRow.Field[FColumnFree];
+    ActualField := CSVRow.Field[FColumnFree].AsString;
     CheckEquals(ExpectColumnTree[Index], ActualField);
     
-    ActualField := CSVRow.Field[FColumnOne.ToLower];
+    ActualField := CSVRow.Field[FColumnOne.ToLower].AsString;
     CheckEquals(ExpectColumnOne[Index], ActualField);
     
     Inc(Index);
@@ -173,7 +173,7 @@ begin
   const ActualCSVRow = FCSVReader.Search(
     function(const CSVRow: TCSVRow): Boolean
     begin
-      Result := CSVRow.Field[FColumnTwo] = FRowTreeCellTree;
+      Result := CSVRow.Field[FColumnTwo].AsString = FRowTreeCellTree;
     end,
     FoundIndex
   );
@@ -190,13 +190,13 @@ begin
   const ActualCSVRow = FCSVReader.Search(
     function(const CSVRow: TCSVRow): Boolean
     begin
-      Result := CSVRow.Field[FColumnTwo] = FRowTwoCellTwo;
+      Result := CSVRow.Field[FColumnTwo].AsString = FRowTwoCellTwo;
     end,
     FoundIndex
   );
 
   CheckEquals(FoundIndex, 1);
-  CheckEquals(ActualCSVRow.Field[FColumnTwo], FRowTwoCellTwo);
+  CheckEquals(ActualCSVRow.Field[FColumnTwo].AsString, FRowTwoCellTwo);
 end;
 
 procedure TCSVReaderTests.SetUp;

@@ -20,22 +20,25 @@ uses
   CSV.Common;
   
 type
-  ECSVException = CSV.Common.ECSVException;
   
 { TCSVWriter }
 
   TCSVWriter = class sealed
-  strict private type
-    TCSVRow = class
+  public type
+    TRow = class
     strict private type
       TFieldsEnumerator = class(TInterfacedObject, IEnumerator<string>)
       strict private
         FIndex: Integer;
-        [Weak] FCSVRow: TCSVRow;
-      public
-        constructor Create(const CSVRow: TCSVRow); reintroduce;
-      public
+        [Weak] FCSVRow: TRow;
+
+      private
         function GetCurrentGen: string;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+
+      public
+        constructor Create(const CSVRow: TRow); reintroduce;
+
+      public
         function IEnumerator<string>.GetCurrent = GetCurrentGen;
         function GetCurrent: TObject;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
         function MoveNext: Boolean;
@@ -45,15 +48,21 @@ type
     strict private
       procedure SetField(Index: Integer; const Value: string); overload;
       procedure SetField(ColumnName: string; const Value: string); overload;
+
     private
       FFields: TDictionary<string, string>;
       FCSVWriter: TCSVWriter;
       function ToArray: TArray<string>;
-    public
+
+    private
       constructor Create(const CSVWriter: TCSVWriter); reintroduce;
+
+    public
       destructor Destroy; override;
+
     public
       function ToString: string; override;
+
     public
       property FieldByIndex[Index: Integer]: string write SetField; default;
       property Field[ColumnName: string]: string write SetField;
@@ -62,18 +71,23 @@ type
   strict private
     FDelimiter: Char;
     function GetCaseSensitive: Boolean;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+
   private
     FColumns: TStringList;
-    FCSVRows: TObjectList<TCSVRow>;
+    FCSVRows: TObjectList<TRow>;
     class function IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T; static;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+
   public
     constructor Create(const Delimiter: Char = ','; const CaseSensitive: Boolean = false); reintroduce;
     destructor Destroy; override;
+
   public
-    function AddRow: TCSVRow;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+    function AddRow: TRow;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
     procedure AddColumn(const ColumnName: string);{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+
   public
     function ToArray: TArray<TArray<string>>;
+
   public
     property Delimiter: Char read FDelimiter;
     property CaseSensitive: Boolean read GetCaseSensitive;
@@ -83,7 +97,7 @@ implementation
 
 uses
   System.SysUtils;
-  
+
 { TCSVWriter }
 
 procedure TCSVWriter.AddColumn(const ColumnName: string);
@@ -91,9 +105,9 @@ begin
   FColumns.Add(ColumnName);
 end;
 
-function TCSVWriter.AddRow: TCSVRow;
+function TCSVWriter.AddRow: TRow;
 begin
-  Result := TCSVRow.Create(Self);
+  Result := TRow.Create(Self);
   FCSVRows.Add(Result);
 end;
 
@@ -102,7 +116,7 @@ begin
   FDelimiter := Delimiter;
   
   FColumns := TStringList.Create(dupIgnore, False, CaseSensitive);
-  FCSVRows := TObjectList<TCSVRow>.Create;
+  FCSVRows := TObjectList<TRow>.Create;
 end;
 
 destructor TCSVWriter.Destroy;
@@ -132,21 +146,21 @@ begin
   end;
 end;
 
-{ TCSVWriter.TCSVRow }
+{ TCSVWriter.TRow }
 
-constructor TCSVWriter.TCSVRow.Create(const CSVWriter: TCSVWriter);
+constructor TCSVWriter.TRow.Create(const CSVWriter: TCSVWriter);
 begin
   FCSVWriter := CSVWriter;
 
   FFields := TDictionary<string, string>.Create;
 end;
 
-destructor TCSVWriter.TCSVRow.Destroy;
+destructor TCSVWriter.TRow.Destroy;
 begin
   FreeAndNil(FFields);
 end;
 
-procedure TCSVWriter.TCSVRow.SetField(ColumnName: string; const Value: string);
+procedure TCSVWriter.TRow.SetField(ColumnName: string; const Value: string);
 begin
   const Index = FCSVWriter.FColumns.IndexOf(ColumnName);
   if Index < 0 then FCSVWriter.AddColumn(ColumnName);
@@ -154,7 +168,7 @@ begin
   FFields.Add(TCSVWriter.IfThenElse(FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower), Value);
 end;
 
-procedure TCSVWriter.TCSVRow.SetField(Index: Integer; const Value: string);
+procedure TCSVWriter.TRow.SetField(Index: Integer; const Value: string);
 begin
   if (Index < 0) or (Index >= FCSVWriter.FColumns.Count) then
   begin
@@ -165,7 +179,7 @@ begin
   FFields.Add(TCSVWriter.IfThenElse(FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower), Value);
 end;
 
-function TCSVWriter.TCSVRow.ToArray: TArray<string>;
+function TCSVWriter.TRow.ToArray: TArray<string>;
 begin
   Result := [];
 
@@ -180,7 +194,7 @@ begin
   end;
 end;
 
-function TCSVWriter.TCSVRow.ToString: string;
+function TCSVWriter.TRow.ToString: string;
 begin
   const Enumerator = TFieldsEnumerator.Create(Self);
   try
@@ -190,21 +204,21 @@ begin
   end;
 end;
 
-{ TCSVWriter.TCSVRow.TFieldsEnumerator }
+{ TCSVWriter.TRow.TFieldsEnumerator }
 
-constructor TCSVWriter.TCSVRow.TFieldsEnumerator.Create(const CSVRow: TCSVRow);
+constructor TCSVWriter.TRow.TFieldsEnumerator.Create(const CSVRow: TRow);
 begin
   FCSVRow := CSVRow;
 
   FIndex := -1;
 end;
 
-function TCSVWriter.TCSVRow.TFieldsEnumerator.GetCurrent: TObject;
+function TCSVWriter.TRow.TFieldsEnumerator.GetCurrent: TObject;
 begin
   Result := nil;
 end;
 
-function TCSVWriter.TCSVRow.TFieldsEnumerator.GetCurrentGen: string;
+function TCSVWriter.TRow.TFieldsEnumerator.GetCurrentGen: string;
 begin
   var ColumnName := FCSVRow.FCSVWriter.FColumns[FIndex];
   ColumnName := TCSVWriter.IfThenElse(FCSVRow.FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower);
@@ -212,13 +226,13 @@ begin
   if not FCSVRow.FFields.TryGetValue(ColumnName, Result) then Result := '';
 end;
 
-function TCSVWriter.TCSVRow.TFieldsEnumerator.MoveNext: Boolean;
+function TCSVWriter.TRow.TFieldsEnumerator.MoveNext: Boolean;
 begin
   Inc(FIndex);
   Result := FIndex < FCSVRow.FCSVWriter.FColumns.Count;
 end;
 
-procedure TCSVWriter.TCSVRow.TFieldsEnumerator.Reset;
+procedure TCSVWriter.TRow.TFieldsEnumerator.Reset;
 begin
   FIndex := -1;
 end;
