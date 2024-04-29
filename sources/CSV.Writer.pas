@@ -165,7 +165,7 @@ begin
   const Index = FCSVWriter.FColumns.IndexOf(ColumnName);
   if Index < 0 then FCSVWriter.AddColumn(ColumnName);
 
-  FFields.Add(TCSVWriter.IfThenElse(FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower), Value);
+  FFields.AddOrSetValue(TCSVWriter.IfThenElse(FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower), Value);
 end;
 
 procedure TCSVWriter.TRow.SetField(Index: Integer; const Value: string);
@@ -176,7 +176,7 @@ begin
   end;
 
   const ColumnName = FCSVWriter.FColumns[Index];
-  FFields.Add(TCSVWriter.IfThenElse(FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower), Value);
+  FFields.AddOrSetValue(TCSVWriter.IfThenElse(FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower), Value);
 end;
 
 function TCSVWriter.TRow.ToArray: TArray<string>;
