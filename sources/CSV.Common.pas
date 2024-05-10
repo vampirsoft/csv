@@ -19,8 +19,26 @@ uses
   System.SysUtils;
 
 type
+
+{ ECSVException }
+
   ECSVException = class(Exception);
+
+{ TObejectHelper }
+
+  TObejectHelper = class helper for TObject
+  public
+    class function IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T; static; inline;
+  end;
   
 implementation
+
+{ TObejectHelper }
+
+class function TObejectHelper.IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T;
+begin
+  if Condition then Exit(ThenValue);
+  Result := ElseValue;
+end;
 
 end.

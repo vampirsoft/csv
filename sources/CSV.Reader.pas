@@ -17,6 +17,7 @@ interface
 
 uses
   System.Classes, System.SysUtils, System.Generics.Collections,
+  {$IFDEF USE_QUICK_LIB}Quick.Arrays{$ELSE}Utils.ExtArray{$ENDIF},
   CSV.Common;
 
 type
@@ -35,19 +36,19 @@ type
       constructor Create(const Value: string; const HasValue: Boolean); reintroduce;
 
     public
-      function AsString: string; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsInteger: Integer; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsInteger(const Default: Integer): Integer; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsInt64: Int64; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsInt64(const Default: Int64): Int64; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsFloat: Double; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsFloat(const Default: Double): Double; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsFloat(const Default: Double; const FormatSettings: TFormatSettings): Double; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsDateTime: TDateTime; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsDateTime(const Default: TDateTime): TDateTime; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsDateTime(const Default: TDateTime; const FormatSettings: TFormatSettings): TDateTime; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsBoolean: Boolean; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-      function AsBoolean(const Default: Boolean): Boolean; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+      function AsString: string; overload; inline;
+      function AsInteger: Integer; overload; inline;
+      function AsInteger(const Default: Integer): Integer; overload; inline;
+      function AsInt64: Int64; overload; inline;
+      function AsInt64(const Default: Int64): Int64; overload; inline;
+      function AsFloat: Double; overload; inline;
+      function AsFloat(const Default: Double): Double; overload; inline;
+      function AsFloat(const Default: Double; const FormatSettings: TFormatSettings): Double; overload; inline;
+      function AsDateTime: TDateTime; overload; inline;
+      function AsDateTime(const Default: TDateTime): TDateTime; overload; inline;
+      function AsDateTime(const Default: TDateTime; const FormatSettings: TFormatSettings): TDateTime; overload; inline;
+      function AsBoolean: Boolean; overload; inline;
+      function AsBoolean(const Default: Boolean): Boolean; overload; inline;
 
     public
       property HasValue: Boolean read FHasValue;
@@ -57,7 +58,7 @@ type
     FFields: TArray<string>;
     FCSVReader: TCSVReader;
     function GetField(Index: Integer): TField; overload;
-    function GetField(ColumnName: string): TField; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+    function GetField(ColumnName: string): TField; overload; inline;
 
   private
     constructor Create(const CSVReader: TCSVReader; const Fields: TArray<string>); reintroduce;
@@ -78,8 +79,7 @@ type
     FCaseSensitive: Boolean;
 
   private
-    FColumns: TList<string>;
-    class function IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T; static;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+    FColumns: TXArray<string>;
 
   strict private type
     TCSVRowEnumerator = class(TEnumerator<TCSVRow>)
@@ -134,7 +134,7 @@ end;
 
 function TCSVRow.GetField(ColumnName: string): TField;
 begin
-  ColumnName := TCSVReader.IfThenElse(FCSVReader.CaseSensitive, ColumnName, ColumnName.ToLower);
+  ColumnName := IfThenElse(FCSVReader.CaseSensitive, ColumnName, ColumnName.ToLower);
   const ColumnIndex = FCSVReader.FColumns.IndexOf(ColumnName);
   Result := GetField(ColumnIndex);
 end;
@@ -229,14 +229,11 @@ begin
   FDelimiter     := Delimiter;
   FCaseSensitive := CaseSensitive;
   
-  if Length(Strings) = 0 then
-  begin
-    FColumns := TList<string>.Create;
-  end else
+  if Length(Strings) > 0 then
   begin
     var Columns := Strings[0];
-    Columns := TCSVReader.IfThenElse(CaseSensitive, Columns, Columns.ToLower);
-    FColumns := TList<string>.Create(Columns.Split(Delimiter));
+    Columns := IfThenElse(CaseSensitive, Columns, Columns.ToLower);
+    FColumns := Columns.Split(Delimiter);
   end;
   
   FCSVRows := TObjectList<TCSVRow>.Create;
@@ -250,18 +247,11 @@ end;
 destructor TCSVReader.Destroy;
 begin
   FreeAndNil(FCSVRows);
-  FreeAndNil(FColumns);
 end;
 
 function TCSVReader.DoGetEnumerator: TEnumerator<TCSVRow>;
 begin
   Result := TCSVRowEnumerator.Create(Self);
-end;
-
-class function TCSVReader.IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T;
-begin
-  if Condition then Exit(ThenValue);
-  Result := ElseValue;
 end;
 
 { TCSVReader.TCSVRowEnumerator }

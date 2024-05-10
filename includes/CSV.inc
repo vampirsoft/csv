@@ -4,7 +4,7 @@
 //* Latest Source: https://github.com/vampirsoft/csv                          *//
 //* Unit Name    : CSV.inc                                                    *//
 //* Author       : Сергей (LordVampir) Дворников                              *//
-//* Copyright 2023 LordVampir (https://github.com/vampirsoft)                 *//
+//* Copyright 2024 LordVampir (https://github.com/vampirsoft)                 *//
 //* Licensed under MIT                                                        *//
 //*****************************************************************************//
 /////////////////////////////////////////////////////////////////////////////////
@@ -12,13 +12,15 @@
 {$IF NOT DEFINED(CSV_INC)}
 {$DEFINE CSV_INC}
 
+// Если используется QuickLib (https://github.com/exilon/QuickLib),
+// необходимо включить эту опцию
+//{$DEFINE USE_QUICK_LIB}
+
 // ВНИМАНИЕ!!!
 // =============================================================================
 // КОД СЛЕДУЮЩИЙ НИЖЕ НЕ ПРЕДНАЗНАЧЕН ДЛЯ ИЗМЕНЕНИЯ ПРОГРАММИСТОМ И
 // СОДЕРЖИТ КРИТИЧЕСКИЕ НАСТРОЙКИ ДЛЯ БИБЛИОТЕКИ CryptoHash
 
-{$IF NOT DEFINED(DEBUG)}
-  {$DEFINE USE_INLINE}
-{$ENDIF}
+{$INCLUDE Common.inc}
 
 {$ENDIF ~ CSV_INC}

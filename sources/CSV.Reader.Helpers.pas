@@ -16,7 +16,8 @@ unit CSV.Reader.Helpers;
 interface
 
 uses
-  System.SysUtils, System.Generics.Defaults,
+  System.SysUtils, System.Generics.Defaults, System.Generics.Collections,
+  Utils.Arrays.Helper,
   CSV.Reader;
 
 type
@@ -25,136 +26,64 @@ type
 
   TCSVReaderHelper = class helper for TCSVReader
   strict private type
-    TSearchPredicate = reference to function(const CSVRow: TCSVRow): Boolean;
-    TBinarySearchComparer = reference to function(const CSVRow: TCSVRow): Integer;
-  strict private
-    procedure CheckIndexAndCount(const StartIndex, Count: Integer);{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+    TSearchPredicate = TArray.TSearchPredicate<TCSVRow>;
+    TBinarySearchComparer = TArray.TBinarySearchComparer<TCSVRow>;
+
   public
-    function Search(const Predicate: TSearchPredicate): TCSVRow; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-    function Search(const Predicate: TSearchPredicate; out FoundIndex: Integer): TCSVRow; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-    function Search(const Predicate: TSearchPredicate; out FoundIndex: Integer;
-      const StartIndex, Count: Integer): TCSVRow; overload;
+    function Search(const Predicate: TSearchPredicate): TCSVRow; overload; inline;
+    function Search(const Predicate: TSearchPredicate; const StartIndex, Count: Integer): TCSVRow; overload; inline;
 
     procedure Sort; overload;
-    procedure Sort(const Comparer: IComparer<TCSVRow>); overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-    procedure Sort(const Comparer: IComparer<TCSVRow>; const StartIndex, Count: Integer); overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+    procedure Sort(const Comparer: IComparer<TCSVRow>); overload; inline;
+    procedure Sort(const Comparer: IComparer<TCSVRow>; const StartIndex, Count: Integer); overload; inline;
 
-    function BinarySearch(const Compare: TBinarySearchComparer): TCSVRow; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-    function BinarySearch(const Compare: TBinarySearchComparer; out FoundIndex: Integer): TCSVRow; overload;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-    function BinarySearch(const Compare: TBinarySearchComparer; out FoundIndex: Integer;
-      const StartIndex, Count: Integer): TCSVRow; overload;
+    function BinarySearch(const Compare: TBinarySearchComparer): TCSVRow; overload; inline;
+    function BinarySearch(const Compare: TBinarySearchComparer;
+      const StartIndex, Count: Integer): TCSVRow; overload; inline;
   end;
 
 implementation
 
-uses
-  CSV.Common;
-
 { TCSVReaderHelper }
 
 function TCSVReaderHelper.BinarySearch(const Compare: TBinarySearchComparer): TCSVRow;
+begin
+  Result := BinarySearch(Compare, 0, FCSVRows.Count);
+end;
+
+function TCSVReaderHelper.BinarySearch(const Compare: TBinarySearchComparer; const StartIndex, Count: Integer): TCSVRow;
 var
   FoundIndex: Integer;
 
 begin
-  Result := BinarySearch(Compare, FoundIndex);
-end;
-
-function TCSVReaderHelper.BinarySearch(const Compare: TBinarySearchComparer; out FoundIndex: Integer): TCSVRow;
-begin
-  Result := BinarySearch(Compare, FoundIndex, 0, FCSVRows.Count);
-end;
-
-function TCSVReaderHelper.BinarySearch(const Compare: TBinarySearchComparer; out FoundIndex: Integer;
-  const StartIndex, Count: Integer): TCSVRow;
-begin
-  CheckIndexAndCount(StartIndex, Count);
-
-  if Count = 0 then
-  begin
-    FoundIndex := -1;
-    Exit(nil);
-  end;
-
-  var L := StartIndex;
-  var H := StartIndex + Count - 1;
-  while L <= H do
-  begin
-    var Mid := L + (H - L) shr 1;
-    const Cmp = Compare(FCSVRows[Mid]);
-    if Cmp < 0 then
-      L := Mid + 1
-    else if Cmp > 0 then
-      H := Mid - 1
-    else
-    begin
-      repeat
-        Dec(Mid);
-      until (Mid < StartIndex) or (Compare(FCSVRows[Mid]) <> 0);
-
-      Inc(Mid);
-      FoundIndex := Mid;
-      Exit(FCSVRows[Mid]);
-    end;
-  end;
-
-  FoundIndex := -1;
-  Exit(nil);
-end;
-
-procedure TCSVReaderHelper.CheckIndexAndCount(const StartIndex, Count: Integer);
-begin
-  if
-    (StartIndex < 0) or
-    ((StartIndex >= FCSVRows.Count) and (Count > 0)) or
-    (StartIndex + Count - 1 >= FCSVRows.Count) or
-    (Count < 0) or
-    (StartIndex + Count < 0)
-  then
-  begin
-    const H = (FCSVRows.Count - 1).ToString;
-    raise ECSVException.Create(
-      'Index=' + StartIndex.ToString + ' out of range=[0, ' + H + '] or Count=' + Count.ToString + ' out of range=[0, ' + H + ']'
-    );
-  end;
+  const CSVRows = FCSVRows.ToArray;
+  if TArray.BinarySearch<TCSVRow>(CSVRows, Compare, FoundIndex, StartIndex, Count) then Exit(CSVRows[FoundIndex]);
+  Result := nil;
 end;
 
 function TCSVReaderHelper.Search(const Predicate: TSearchPredicate): TCSVRow;
+begin
+  Result := Search(Predicate, 0, FCSVRows.Count);
+end;
+
+function TCSVReaderHelper.Search(const Predicate: TSearchPredicate; const StartIndex, Count: Integer): TCSVRow;
 var
   FoundIndex: Integer;
 
 begin
-  Result := Search(Predicate, FoundIndex);
-end;
-
-function TCSVReaderHelper.Search(const Predicate: TSearchPredicate; out FoundIndex: Integer): TCSVRow;
-begin
-  Result := Search(Predicate, FoundIndex, 0, FCSVRows.Count);
-end;
-
-function TCSVReaderHelper.Search(const Predicate: TSearchPredicate; out FoundIndex: Integer; const StartIndex,
-  Count: Integer): TCSVRow;
-begin
-  CheckIndexAndCount(StartIndex, Count);
-
-  for var Index := StartIndex to Count - 1 do
-  begin
-    const CSVRow = FCSVRows[Index];
-    FoundIndex := Index;
-    if Predicate(CSVRow) then Exit(CSVRow);
-  end;
-
-  FoundIndex := -1;
+  const CSVRows = FCSVRows.ToArray;
+  if TArray.Search<TCSVRow>(CSVRows, Predicate, FoundIndex, StartIndex, Count) then Exit(CSVRows[FoundIndex]);
   Result := nil;
 end;
 
 procedure TCSVReaderHelper.Sort;
 begin
+  const Comparer = TComparer<string>.Default;
   FCSVRows.Sort(
     TComparer<TCSVRow>.Construct(
       function(const Left, Right: TCSVRow): Integer
       begin
-        Result := TComparer<string>.Default.Compare(Left.ToString, Right.ToString);
+        Result := Comparer.Compare(Left.ToString, Right.ToString);
       end
     )
   );
