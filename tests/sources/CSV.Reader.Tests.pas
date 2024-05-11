@@ -72,15 +72,14 @@ uses
 { TCSVReaderTests }
 
 procedure TCSVReaderTests.binary_search_should_return_nil_if_not_found_row_test;
-var
-  FoundIndex: Integer;
-
 begin
+  const Comparer = TComparer<string>.Default;
+
   FCSVReader.Sort(
     TComparer<TCSVRow>.Construct(
       function(const Left, Right: TCSVRow): Integer
       begin
-        Result := TComparer<string>.Default.Compare(Left.Field[FColumnOne].AsString, Right.Field[FColumnOne].AsString);
+        Result := Comparer.Compare(Left.Field[FColumnOne].AsString, Right.Field[FColumnOne].AsString);
       end
     )
   );
@@ -88,25 +87,22 @@ begin
   const ActualCSVRow = FCSVReader.BinarySearch(
     function(const CSVRow: TCSVRow): Integer
     begin
-      Result := TComparer<string>.Default.Compare(CSVRow.Field[FColumnOne].AsString, FRowTreeCellTree);
-    end,
-    FoundIndex
+      Result := Comparer.Compare(CSVRow.Field[FColumnOne].AsString, FRowTreeCellTree);
+    end
   );
 
-  CheckEquals(FoundIndex, -1);
   CheckNull(ActualCSVRow);
 end;
 
 procedure TCSVReaderTests.binary_search_should_return_nil_if_row_exists_test;
-var
-  FoundIndex: Integer;
-
 begin
+  const Comparer = TComparer<string>.Default;
+
   FCSVReader.Sort(
     TComparer<TCSVRow>.Construct(
       function(const Left, Right: TCSVRow): Integer
       begin
-        Result := TComparer<string>.Default.Compare(Left.Field[FColumnOne].AsString, Right.Field[FColumnOne].AsString);
+        Result := Comparer.Compare(Left.Field[FColumnOne].AsString, Right.Field[FColumnOne].AsString);
       end
     )
   );
@@ -114,12 +110,10 @@ begin
   const ActualCSVRow = FCSVReader.BinarySearch(
     function(const CSVRow: TCSVRow): Integer
     begin
-      Result := TComparer<string>.Default.Compare(CSVRow.Field[FColumnOne].AsString, FRowTwoCellOne);
-    end,
-    FoundIndex
+      Result := Comparer.Compare(CSVRow.Field[FColumnOne].AsString, FRowTwoCellOne);
+    end
   );
 
-  CheckEquals(FoundIndex, 2);
   CheckEquals(ActualCSVRow.Field[FColumnOne].AsString, FRowTwoCellOne);
 end;
 
@@ -166,36 +160,26 @@ begin
 end;
 
 procedure TCSVReaderTests.search_should_return_nil_if_not_found_row_test;
-var
-  FoundIndex: Integer;
-
 begin
   const ActualCSVRow = FCSVReader.Search(
     function(const CSVRow: TCSVRow): Boolean
     begin
       Result := CSVRow.Field[FColumnTwo].AsString = FRowTreeCellTree;
-    end,
-    FoundIndex
+    end
   );
 
-  CheckEquals(FoundIndex, -1);
   CheckNull(ActualCSVRow);
 end;
 
 procedure TCSVReaderTests.search_should_return_row_if_row_exists_test;
-var
-  FoundIndex: Integer;
-
 begin
   const ActualCSVRow = FCSVReader.Search(
     function(const CSVRow: TCSVRow): Boolean
     begin
       Result := CSVRow.Field[FColumnTwo].AsString = FRowTwoCellTwo;
-    end,
-    FoundIndex
+    end
   );
 
-  CheckEquals(FoundIndex, 1);
   CheckEquals(ActualCSVRow.Field[FColumnTwo].AsString, FRowTwoCellTwo);
 end;
 

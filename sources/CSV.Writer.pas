@@ -33,16 +33,16 @@ type
         [Weak] FCSVRow: TRow;
 
       private
-        function GetCurrentGen: string;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+        function GetCurrentGen: string; inline;
 
       public
         constructor Create(const CSVRow: TRow); reintroduce;
 
       public
         function IEnumerator<string>.GetCurrent = GetCurrentGen;
-        function GetCurrent: TObject;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+        function GetCurrent: TObject; inline;
         function MoveNext: Boolean;
-        procedure Reset;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+        procedure Reset; inline;
       end;
 
     strict private
@@ -70,20 +70,19 @@ type
 
   strict private
     FDelimiter: Char;
-    function GetCaseSensitive: Boolean;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+    function GetCaseSensitive: Boolean; inline;
 
   private
     FColumns: TStringList;
     FCSVRows: TObjectList<TRow>;
-    class function IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T; static;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
 
   public
     constructor Create(const Delimiter: Char = ','; const CaseSensitive: Boolean = false); reintroduce;
     destructor Destroy; override;
 
   public
-    function AddRow: TRow;{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
-    procedure AddColumn(const ColumnName: string);{$IF DEFINED(USE_INLINE)}inline;{$ENDIF}
+    function AddRow: TRow; inline;
+    procedure AddColumn(const ColumnName: string); inline;
 
   public
     function ToArray: TArray<TArray<string>>;
@@ -130,12 +129,6 @@ begin
   Result := FColumns.CaseSensitive;
 end;
 
-class function TCSVWriter.IfThenElse<T>(const Condition: Boolean; const ThenValue, ElseValue: T): T;
-begin
-  if Condition then Exit(ThenValue);
-  Result := ElseValue;
-end;
-
 function TCSVWriter.ToArray: TArray<TArray<string>>;
 begin
   Result := [FColumns.ToStringArray];
@@ -165,7 +158,7 @@ begin
   const Index = FCSVWriter.FColumns.IndexOf(ColumnName);
   if Index < 0 then FCSVWriter.AddColumn(ColumnName);
 
-  FFields.AddOrSetValue(TCSVWriter.IfThenElse(FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower), Value);
+  FFields.AddOrSetValue(IfThenElse(FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower), Value);
 end;
 
 procedure TCSVWriter.TRow.SetField(Index: Integer; const Value: string);
@@ -176,7 +169,7 @@ begin
   end;
 
   const ColumnName = FCSVWriter.FColumns[Index];
-  FFields.AddOrSetValue(TCSVWriter.IfThenElse(FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower), Value);
+  FFields.AddOrSetValue(IfThenElse(FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower), Value);
 end;
 
 function TCSVWriter.TRow.ToArray: TArray<string>;
@@ -221,7 +214,7 @@ end;
 function TCSVWriter.TRow.TFieldsEnumerator.GetCurrentGen: string;
 begin
   var ColumnName := FCSVRow.FCSVWriter.FColumns[FIndex];
-  ColumnName := TCSVWriter.IfThenElse(FCSVRow.FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower);
+  ColumnName := IfThenElse(FCSVRow.FCSVWriter.CaseSensitive, ColumnName, ColumnName.ToLower);
 
   if not FCSVRow.FFields.TryGetValue(ColumnName, Result) then Result := '';
 end;
