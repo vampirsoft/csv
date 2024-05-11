@@ -27,7 +27,7 @@
 - [QuickLib](https://github.com/exilon/QuickLib)
 
 ### Обязательные
-- Нет
+- [utils4d](https://github.com/vampirsoft/utils4d)
 
 [1] Переключение возможно в [CSV.inc](/includes/CSV.inc) с помощью соответствующего ключа (не рекомендуется) или в настройках проекта путём добавления соответствующего ключа
 
