@@ -13,12 +13,8 @@ program reader;
 
 {$INCLUDE CSV.Tests.inc}
 
-{$IFDEF CONSOLE_TESTRUNNER}
-{$APPTYPE CONSOLE}
-{$ENDIF}
-
 uses
-  DUnitTestRunner,
+  CSV.Tests.Runner in '..\sources\CSV.Tests.Runner.pas',
   CSV.Common in '..\..\sources\CSV.Common.pas',
   CSV.Reader in '..\..\sources\CSV.Reader.pas',
   CSV.Reader.Helpers in '..\..\sources\CSV.Reader.Helpers.pas',
@@ -28,9 +24,5 @@ uses
 
 begin
   ReportMemoryLeaksOnShutdown := True;
-  DUnitTestRunner.RunRegisteredTests;
-{$IFDEF CONSOLE_TESTRUNNER}
-  Write('Для завершения нажмите "ENTER"');
-  Readln;
-{$ENDIF ~ CONSOLE_TESTRUNNER}
+  RunRegisteredTests;
 end.

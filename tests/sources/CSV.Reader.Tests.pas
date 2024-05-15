@@ -16,14 +16,15 @@ unit CSV.Reader.Tests;
 interface
 
 uses
-  TestFramework, System.Classes,
-  CSV.Reader;
+  DUnitX.TestFramework, System.Classes,
+  CSV.Common, CSV.Reader;
 
 type
 
 { TCSVReaderTests }
 
-  TCSVReaderTests = class(TTestCase)
+  [TestFixture]
+  TCSVReaderTests = class
   strict private const
     FDelimiter = #9;
     
@@ -46,20 +47,28 @@ type
   strict private
     FCSVReader: TCSVReader;
 
-  protected
-    procedure SetUp; override;
-    procedure TearDown; override;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
 
-  published
+    [Test]
     procedure get_all_rows_test;
 
+    [Test]
     procedure raise_exceptionon_on_get_field_if_column_not_found_test;
+    [Test]
     procedure raise_exceptionon_on_get_field_if_index_not_found_test;
 
+    [Test]
     procedure search_should_return_nil_if_not_found_row_test;
+    [Test]
     procedure search_should_return_row_if_row_exists_test;
 
+    [Test]
     procedure binary_search_should_return_nil_if_not_found_row_test;
+    [Test]
     procedure binary_search_should_return_nil_if_row_exists_test;
   end;
 
@@ -67,7 +76,7 @@ implementation
 
 uses
   System.SysUtils, System.Generics.Defaults, System.Generics.Collections,
-  CSV.Common, CSV.Reader.Helpers;
+  CSV.Reader.Helpers;
 
 { TCSVReaderTests }
 
@@ -91,7 +100,7 @@ begin
     end
   );
 
-  CheckNull(ActualCSVRow);
+  Assert.IsNull(ActualCSVRow);
 end;
 
 procedure TCSVReaderTests.binary_search_should_return_nil_if_row_exists_test;
@@ -114,7 +123,7 @@ begin
     end
   );
 
-  CheckEquals(ActualCSVRow.Field[FColumnOne].AsString, FRowTwoCellOne);
+   Assert.AreEqual(ActualCSVRow.Field[FColumnOne].AsString, FRowTwoCellOne);
 end;
 
 procedure TCSVReaderTests.get_all_rows_test;
@@ -127,13 +136,13 @@ begin
   for var CSVRow in FCSVReader do
   begin
     var ActualField := CSVRow.Field[FColumnTwo.ToUpper].AsString;
-    CheckEquals(ExpectColumnTwo[Index], ActualField);
+     Assert.AreEqual(ExpectColumnTwo[Index], ActualField);
 
     ActualField := CSVRow.Field[FColumnFree].AsString;
-    CheckEquals(ExpectColumnTree[Index], ActualField);
+     Assert.AreEqual(ExpectColumnTree[Index], ActualField);
     
     ActualField := CSVRow.Field[FColumnOne.ToLower].AsString;
-    CheckEquals(ExpectColumnOne[Index], ActualField);
+     Assert.AreEqual(ExpectColumnOne[Index], ActualField);
     
     Inc(Index);
   end;
@@ -141,22 +150,30 @@ end;
 
 procedure TCSVReaderTests.raise_exceptionon_on_get_field_if_column_not_found_test;
 begin
-  ExpectedException := ECSVException;
-
-  for var CSVRow in FCSVReader do
-  begin
-    const ActualField = CSVRow.Field['Invalid column'];
-  end;
+  Assert.WillRaise(
+    procedure
+    begin
+      for var CSVRow in FCSVReader do
+      begin
+        const ActualField = CSVRow.Field['Invalid column'];
+      end;
+    end,
+    ECSVException
+  );
 end;
 
 procedure TCSVReaderTests.raise_exceptionon_on_get_field_if_index_not_found_test;
 begin
-  ExpectedException := ECSVException;
-
-  for var CSVRow in FCSVReader do
-  begin
-    const ActualField = CSVRow[3];
-  end;
+  Assert.WillRaise(
+    procedure
+    begin
+      for var CSVRow in FCSVReader do
+      begin
+        const ActualField = CSVRow[3];
+      end;
+    end,
+    ECSVException
+  );
 end;
 
 procedure TCSVReaderTests.search_should_return_nil_if_not_found_row_test;
@@ -168,7 +185,7 @@ begin
     end
   );
 
-  CheckNull(ActualCSVRow);
+  Assert.IsNull(ActualCSVRow);
 end;
 
 procedure TCSVReaderTests.search_should_return_row_if_row_exists_test;
@@ -180,7 +197,7 @@ begin
     end
   );
 
-  CheckEquals(ActualCSVRow.Field[FColumnTwo].AsString, FRowTwoCellTwo);
+   Assert.AreEqual(ActualCSVRow.Field[FColumnTwo].AsString, FRowTwoCellTwo);
 end;
 
 procedure TCSVReaderTests.SetUp;
@@ -202,6 +219,6 @@ begin
 end;
 
 initialization
-  RegisterTest(TCSVReaderTests.Suite);
+  TDUnitX.RegisterTestFixture(TCSVReaderTests);
   
 end.
