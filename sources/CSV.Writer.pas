@@ -41,7 +41,7 @@ type
       public
         function IEnumerator<string>.GetCurrent = GetCurrentGen;
         function GetCurrent: TObject; inline;
-        function MoveNext: Boolean;
+        function MoveNext: Boolean; inline;
         procedure Reset; inline;
       end;
 
@@ -52,7 +52,7 @@ type
     private
       FFields: TDictionary<string, string>;
       FCSVWriter: TCSVWriter;
-      function ToArray: TArray<string>;
+      function ToArray: TArray<string>; inline;
 
     private
       constructor Create(const CSVWriter: TCSVWriter); reintroduce;

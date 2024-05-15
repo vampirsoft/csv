@@ -16,14 +16,15 @@ unit CSV.Writer.Tests;
 interface
 
 uses
-  TestFramework,
+  DUnitX.TestFramework,
   CSV.Writer;
 
 type
   
 { TCSVWriterTests }
 
-  TCSVWriterTests = class(TTestCase)
+  [TestFixture]
+  TCSVWriterTests = class
   strict private const
     FDelimiter = #9;
     
@@ -46,10 +47,13 @@ type
   strict private
     FCSVWriter: TCSVWriter;
     
-  protected
-    procedure SetUp; override;
-    procedure TearDown; override;
-  published
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
     procedure write_values_should_be_correct;
   end;
 
@@ -97,12 +101,12 @@ begin
 
     for var J := Low(A) to High(A) do
     begin      
-      CheckEquals(A[J], E[J]);
+       Assert.AreEqual(E[J], A[J]);
     end;
   end;
 end;
 
 initialization
-  RegisterTest(TCSVWriterTests.Suite);
+  TDUnitX.RegisterTestFixture(TCSVWriterTests);
   
 end.
